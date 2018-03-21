@@ -1,0 +1,49 @@
+//
+//  MyViewController.m
+//  Aisino_iOS_SupplyChain
+//
+//  Created by 荣学敏 on 2018/3/19.
+//
+
+#import "MyViewController.h"
+#import "LoginViewController.h"
+#import "LoginSection.h"
+#import "LoginCacheSection.h"
+@interface MyViewController ()
+
+@end
+
+@implementation MyViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.vcTagName = @"我的";
+    
+    LoginCacheSection *loginSec = [[LoginCacheSection alloc]init];
+    [loginSec userLoginByAccount:@"zhaoxue" Password:@"111111" result:^(BOOL result, NSDictionary *dict) {
+        dict;
+    }];
+    
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    LoginViewController *logo = [[LoginViewController alloc]init];
+    [self presentViewController:logo animated:YES completion:nil];
+}
+@end

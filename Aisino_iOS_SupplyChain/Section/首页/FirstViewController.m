@@ -1,0 +1,54 @@
+//
+//  FirstViewController.m
+//  Aisino_iOS_SupplyChain
+//
+//  Created by 荣学敏 on 2018/3/19.
+//
+
+#import "FirstViewController.h"
+
+@interface FirstViewController ()
+
+@end
+
+@implementation FirstViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.vcTagName = @"首页";
+    self.navigationController.navigationBar.translucent = YES;
+    self.view.backgroundColor = UIColorMainColor;
+    [self setTabbar];
+    
+   
+
+}
+
+/**
+ 设置tabbar相关内容
+ */
+- (void)setTabbar
+{
+    [self setBarNormalImageName:@"tab_home_normal" PressImageName:@"tab_home_selected" AtIndex:0];
+    [self setBarNormalImageName:@"tab_buy_normal" PressImageName:@"tab_buy_selected" AtIndex:1];
+    [self setBarNormalImageName:@"tab_sell_normal" PressImageName:@"tab_sell_selected" AtIndex:2];
+    [self setBarNormalImageName:@"tab_shopping _normal" PressImageName:@"tab_shopping _selected" AtIndex:3];
+    [self setBarNormalImageName:@"tab_mine_normal" PressImageName:@"tab_mine_selected" AtIndex:4];
+    [self setTabBarBadage];
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

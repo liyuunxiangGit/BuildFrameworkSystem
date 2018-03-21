@@ -1,0 +1,263 @@
+//
+//  SCNetwork.m
+//  Aisino_iOS_SupplyChain
+//
+//  Created by 荣学敏 on 2018/3/19.
+//
+
+#import "SCNetwork.h"
+
+NSUInteger g_HttpTimeOut = 20;  //超时时间,秒
+@implementation SCNetwork
+{
+    SCObject *m_section;
+    BOOL setCache;
+}
+- (id)init{
+    self = [super init];
+    if (self) {
+        setCache = NO;
+    }
+    return self;
+}
+- (AFHTTPSessionManager *)getManager{
+    static AFHTTPSessionManager *g_manager = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        g_manager = [AFHTTPSessionManager manager];
+        g_manager.responseSerializer = [AFHTTPResponseSerializer serializer];    //加上这个是为了让返回的数据是二进制模式
+        g_manager.operationQueue.maxConcurrentOperationCount = 10;
+        [g_manager.requestSerializer setValue:@"application/x-www-form-urlencoded; charset=utf-8" forHTTPHeaderField:@"Content-Type"];
+
+        g_manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/html",@"text/json",@"text/javascript",@"application/javascript",@"audio/amr",@"text/plain", nil];
+        // 设置请求头
+//        [g_manager.requestSerializer setValue:userHeader forHTTPHeaderField:@"Custom-Header"];
+        
+        [g_manager.requestSerializer willChangeValueForKey:@"timeoutInterval"];
+        g_manager.requestSerializer.timeoutInterval = g_HttpTimeOut;
+        [g_manager.requestSerializer didChangeValueForKey:@"timeoutInterval"];
+        
+
+        //此处可设置token
+//        [manager.requestSerializer setValue:tk forHTTPHeaderField:@"token"];
+//        [manager.requestSerializer setValue:cr forHTTPHeaderField:@"creator"];
+    });
+    return g_manager;
+}
+
+
+//- (NSURLSessionDataTask *)POST:(NSString *)URLString
+//                    parameters:(id)parameters
+//                 SectionObject:(SCObject *)section
+//                       success:(void (^)(NSURLSessionDataTask *operation, id responseObject))success
+//                       failure:(void (^)(NSURLSessionDataTask *operation, NSError *error))failure{
+//    m_section = section;
+//    WEAKSELF;
+//    //加密。  判断如果需要加密的接口，那么进行加密，否则不进行加密（这里暂时注释掉，后期和服务端具体商量加密方法）
+////    if([weakSelf isNeedEncrypt:URLString]){
+////        NSString *log2 = [NSString stringWithFormat:@"%@",URLString];
+////#if DEBUG
+////        DDLogInfo(@"请求地址：%@",log2);
+////        NSLog(@"完整请求%@?%@",log2,parameters);
+////#endif
+////        parameters = [weakSelf encryptParams:parameters];
+////        //        NSLog(@"%@?%@",log2,parameters);
+////    }else{
+//        NSString *log = [NSString stringWithFormat:@"请求:%@",URLString];
+//        NSLog(@"完整请求%@?%@",log,parameters);
+////    }
+//
+//    return [[self getManager] POST:URLString parameters:parameters success:^(NSURLSessionDataTask *operation, id responseObject) {
+//        NSString *Return = [[NSString alloc]initWithData:responseObject encoding:NSUTF8StringEncoding];
+//        if (Return == nil || [Return isEqual:[NSNull null]]) {
+//            //汉字转码
+//            NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//            Return = [[NSString alloc] initWithData:responseObject encoding:enc];
+//        }
+//        //        NSString *log = [NSString stringWithFormat:@"返回[%@]:%@",operation.response.URL.host,Return];
+//        //  DDLogInfo(@"%@",log);
+//        //解密.
+//        //返回处。
+//        NSString *log;
+//        if([weakSelf isNeedDecrypt:URLString])
+//        {
+//            responseObject = [weakSelf decryptResult:Return withURl:URLString withDefaultValue:Return netFlag:YES];
+//            //ceshi
+//            NSString *Ret = [[NSString alloc]initWithData:responseObject encoding:NSUTF8StringEncoding];
+//            if (Ret == nil || [Ret isEqual:[NSNull null]]) {
+//                //汉字转码
+//                NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//                Ret = [[NSString alloc] initWithData:responseObject encoding:enc];
+//            }
+//        }else{
+//            log =  [NSString stringWithFormat:@"返回:%@",Return];
+//            //            DDLogInfo(@"%@",log);
+//#if DEBUG
+//            NSLog(@"%@",log);
+//#endif
+//        }
+//
+//
+//
+//        if ([weakSelf reLoginDesideWithOperation:operation ResponsString:Return] == NO) {
+//            success(operation,responseObject);
+//            if (setCache) {
+//                NSError *error;
+//                //这里增加一个解密后的returnNor，用来解析值，判断是否成功了，是否需要缓存，而原有的RETURN 则留着在下面缓存使用。
+//                NSString *ReturnNor = [[NSString alloc]initWithData:responseObject encoding:NSUTF8StringEncoding];
+//                if (ReturnNor == nil || [ReturnNor isEqual:[NSNull null]]) {
+//                    //汉字转码
+//                    NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//                    ReturnNor = [[NSString alloc] initWithData:responseObject encoding:enc];
+//                }
+//
+//                NSDictionary *resultDic = [NSJSONSerialization JSONObjectWithData:[ReturnNor dataUsingEncoding:NSUTF8StringEncoding  ] options:NSJSONReadingMutableContainers error:&error];
+//
+//                //                NSDictionary *resultDic = [NSJSONSerialization JSONObjectWithData:[Return dataUsingEncoding:NSUTF8StringEncoding  ] options:NSJSONReadingMutableContainers error:&error];
+//                NSInteger resultCode = [[resultDic objectForKey:@"resultCode"] integerValue];
+//                //针对api服务端做特殊处理，这里返回的值不是resultcode，而是json里面有code。王忠伟  2016年02月23日11:20:12
+//                if ([URLString rangeOfString:[URLFunction getJXLXHost]].location != NSNotFound) {
+//                    //                    resultCode = [[[resultDic objectForKey:@"json"] objectForKey:@"code"]integerValue];
+//                    resultCode = [resultDic[@"json"][@"code"] integerValue];
+//                }
+//                if (resultCode == 1) {
+//                    [weakSelf setCacheWithContent:Return andParamter:parameters andUrl:URLString];
+//                }
+//
+//
+//            }
+//        }else{
+//            //重登陆
+//            [weakSelf reLogin];
+//        }
+//
+//    } failure:^(NSURLSessionDataTask *operation, NSError *error) {
+//        failure(operation,error);
+//    }];
+//}
+
+
+
+
+
+//-(BOOL) isNeedEncrypt:(NSString*) url{
+//
+//    NSString * appHost = [URLFunction getYBTHost];
+//    NSString *apiHost = [URLFunction getJXLXHost];
+//
+//    //    ybtUploadFile
+//    NSArray* noEncryptArray = [[NSArray alloc] initWithObjects:[URLFunction ybtUploadFile],[URLFunction ybtGetDownloadResourceAddress],[URLFunction ybtGetToken],URL_YBT_PATCH,nil];
+//
+//    if ([url rangeOfString:appHost].location != NSNotFound||[url rangeOfString:apiHost].location != NSNotFound){
+//
+//        for (NSString* item in noEncryptArray) {
+//            //            if ([item isEqualToString:url]) {  //不能用等号，因为实际的接口是有参数的。
+//            if( [url rangeOfString:item].location!= NSNotFound){
+//                return NO;
+//            }
+//        }
+//        return YES;//nmapp下都加密 除了再上面集合里的。正常应该返回YES
+//    }
+//    return NO;
+//}
+//
+//-(BOOL) isNeedDecrypt:(NSString*) url{
+//
+//    NSString * appHost = [URLFunction getYBTHost];
+//    NSString *apiHost = [URLFunction getJXLXHost];
+//
+//    NSArray* noDecryptArray = [[NSArray alloc] initWithObjects:[URLFunction ybtUploadFile],[URLFunction ybtGetDownloadResourceAddress],[URLFunction ybtGetToken],URL_YBT_PATCH,nil]
+//    ;
+//    if ([url rangeOfString:appHost].location != NSNotFound||[url rangeOfString:apiHost].location != NSNotFound){
+//
+//        for (NSString* item in noDecryptArray) {
+//            //            if ([item isEqualToString:url]) {
+//            if( [url rangeOfString:item].location!= NSNotFound){
+//                return NO;
+//            }
+//        }
+//        return YES; //nmapp下都解密 除了再上面集合里的。 正常应该返回YES
+//
+//    }
+//    return NO;
+//}
+//
+//-(id) encryptParams:(id)params{
+//
+//    UInt64 msecond1 = [[NSDate date] timeIntervalSince1970]*1000;
+//    NSMutableDictionary *paramTemp = [NSMutableDictionary dictionaryWithDictionary:params ];
+//    //            NSMutableDictionary* paramNew ;
+//    id  paramNew;
+//    @try{
+//
+//        NSArray *keys;
+//        int i, count;
+//        id key, value;
+//        NSString * newValue;
+//        NSString* encrypt;
+//        keys = [paramTemp allKeys];
+//        count = [keys count];
+//        for (i = 0; i < count; i++)
+//        {
+//            key = [keys objectAtIndex: i];
+//            value = [paramTemp objectForKey: key];
+//            //            NSLog (@"Key: %@ for value: %@", key, value);
+//            encrypt = [NSString stringWithFormat:@"%@",value];
+//            newValue = [NSData AES256EncryptWithPlainText:encrypt];
+//            //            [paramTemp removeObjectForKey:key];
+//            //            [paramTemp removeObjectForKey:key];
+//            [paramTemp setValue:newValue forKey:key];
+//            //            [paramNew setObject:newValue forKey:key];
+//            //            NSLog(@"123");
+//            //            NSLog (@"Key: %@ for value: %@", key, newValue);
+//        }
+//        paramNew = paramTemp;
+//        //            parameters = paramNew;
+//    }
+//    @catch(NSException *exception) {
+//        NSLog(@"exception:%@", exception);
+//    }
+//    @finally {
+//
+//    }
+//    UInt64 msecond2 = [[NSDate date] timeIntervalSince1970]*1000;
+//    //    NSLog(@"加密发送，加密总时间：%llu毫秒", msecond2 - msecond1);
+//    return paramNew;
+//}
+//
+//
+//-(id)decryptResult:(NSString*)result withURl:(NSString*)urlString withDefaultValue:(NSString*) deRet netFlag:(BOOL) netFlag {
+//
+//    UInt64 msecond1 = [[NSDate date] timeIntervalSince1970]*1000;
+//    id responseObject; NSString *log ;
+//    NSString* retTemp = [NSData AES256DecryptWithCiphertext:result];
+//    UInt64 msecond2 = [[NSDate date] timeIntervalSince1970]*1000;
+//
+//    //    NSLog(@"解密总时间：%llu毫秒", msecond2 - msecond1);
+//    NSString *strTemp = [retTemp stringByReplacingOccurrencesOfString:@" " withString:@""];
+//
+//    if (retTemp==nil||[retTemp isEqual:[NSNull null]]||[retTemp  isEqualToString:@""]||[strTemp isEqualToString:@""]||[strTemp isEqual:[NSNull null]]) {
+//        retTemp = deRet ;
+//    }
+//    //    ([url rangeOfString:appHost].location != NSNotFound||[url rangeOfString:apiHost].location != NSNotFound)
+//    if ([urlString rangeOfString:[URLFunction getJXLXHost]].location != NSNotFound) {
+//        NSStringEncoding   enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//        responseObject = [retTemp dataUsingEncoding:enc ];
+//    }else{
+//        responseObject = [retTemp dataUsingEncoding:NSUTF8StringEncoding];
+//    }
+//    log = [NSString stringWithFormat:@"返回解密:%@",retTemp];
+//    //    DDLogInfo(@"%@",log);
+//    //增加如果是网络返回的结果，那么才输出日志。
+//    if (netFlag) {
+//#if DEBUG
+//        NSLog(@"%@",log);
+//#endif
+//    }
+//
+//    return responseObject;
+//
+//}
+
+
+@end

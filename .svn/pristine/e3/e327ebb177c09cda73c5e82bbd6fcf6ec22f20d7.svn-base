@@ -1,0 +1,358 @@
+//
+//  SCNetwork.m
+//  Aisino_iOS_SupplyChain
+//
+//  Created by 荣学敏 on 2018/3/19.
+//
+
+#import "SCNetwork.h"
+#import "SCDbHelper.h"
+#import "SectionCache.h"
+#import "TimeUtil.h"
+NSUInteger g_HttpTimeOut = 20;  //超时时间,秒
+@implementation SCNetwork
+{
+    SCObject *m_section;
+    BOOL setCache;
+}
+- (id)init{
+    self = [super init];
+    if (self) {
+        setCache = NO;
+    }
+    return self;
+}
+- (AFHTTPSessionManager *)getManager{
+    static AFHTTPSessionManager *g_manager = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        g_manager = [AFHTTPSessionManager manager];
+        g_manager.responseSerializer = [AFHTTPResponseSerializer serializer];    //加上这个是为了让返回的数据是二进制模式
+        g_manager.operationQueue.maxConcurrentOperationCount = 10;
+        [g_manager.requestSerializer setValue:@"application/x-www-form-urlencoded; charset=utf-8" forHTTPHeaderField:@"Content-Type"];
+
+        g_manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/html",@"text/json",@"text/javascript",@"application/javascript",@"audio/amr",@"text/plain", nil];
+        // 设置请求头
+//        [g_manager.requestSerializer setValue:userHeader forHTTPHeaderField:@"Custom-Header"];
+        
+        [g_manager.requestSerializer willChangeValueForKey:@"timeoutInterval"];
+        g_manager.requestSerializer.timeoutInterval = g_HttpTimeOut;
+        [g_manager.requestSerializer didChangeValueForKey:@"timeoutInterval"];
+        
+
+        //此处可设置token
+//        [manager.requestSerializer setValue:tk forHTTPHeaderField:@"token"];
+//        [manager.requestSerializer setValue:cr forHTTPHeaderField:@"creator"];
+    });
+    return g_manager;
+}
+
+
+- (NSURLSessionDataTask *)POST:(NSString *)URLString
+                    parameters:(id)parameters
+                 SectionObject:(SCObject *)section
+                       success:(void (^)(NSURLSessionDataTask *operation, id responseObject))success
+                       failure:(void (^)(NSURLSessionDataTask *operation, NSError *error))failure{
+    m_section = section;
+    WEAKSELF;
+    //加密。  判断如果需要加密的接口，那么进行加密，否则不进行加密（这里暂时注释掉，后期和服务端具体商量加密方法）
+//    if([weakSelf isNeedEncrypt:URLString]){
+//        NSString *log2 = [NSString stringWithFormat:@"%@",URLString];
+//#if DEBUG
+//        DDLogInfo(@"请求地址：%@",log2);
+//        NSLog(@"完整请求%@?%@",log2,parameters);
+//#endif
+//        parameters = [weakSelf encryptParams:parameters];
+//        //        NSLog(@"%@?%@",log2,parameters);
+//    }else{
+        NSString *log = [NSString stringWithFormat:@"%@",URLString];
+        NSLog(@"\n\n完整请求%@?%@\n",log,parameters);
+//    }
+
+    return [[self getManager] POST:URLString parameters:parameters success:^(NSURLSessionDataTask *operation, id responseObject) {
+        NSString *Return = [[NSString alloc]initWithData:responseObject encoding:NSUTF8StringEncoding];
+        if (Return == nil || [Return isEqual:[NSNull null]]) {
+            //汉字转码
+            NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+            Return = [[NSString alloc] initWithData:responseObject encoding:enc];
+        }
+        //        NSString *log = [NSString stringWithFormat:@"返回[%@]:%@",operation.response.URL.host,Return];
+        //  DDLogInfo(@"%@",log);
+        //解密.
+        //返回处。
+        NSString *log;
+//        if([weakSelf isNeedDecrypt:URLString])
+//        {
+//            responseObject = [weakSelf decryptResult:Return withURl:URLString withDefaultValue:Return netFlag:YES];
+//            //ceshi
+//            NSString *Ret = [[NSString alloc]initWithData:responseObject encoding:NSUTF8StringEncoding];
+//            if (Ret == nil || [Ret isEqual:[NSNull null]]) {
+//                //汉字转码
+//                NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//                Ret = [[NSString alloc] initWithData:responseObject encoding:enc];
+//            }
+//        }else{
+        
+            log =  [NSString stringWithFormat:@"%@\n请求返回:%@",URLString,Return];
+            //            DDLogInfo(@"%@",log);
+#if DEBUG
+            NSLog(@"\n\n%@\n\n",log);
+#endif
+            success(operation,responseObject);
+        
+        //做缓存
+        if (setCache) {
+            NSError *error;
+            //这里增加一个解密后的returnNor，用来解析值，判断是否成功了，是否需要缓存，而原有的RETURN 则留着在下面缓存使用。
+            NSString *ReturnNor = [[NSString alloc]initWithData:responseObject encoding:NSUTF8StringEncoding];
+            if (ReturnNor == nil || [ReturnNor isEqual:[NSNull null]]) {
+                //汉字转码
+                NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+                ReturnNor = [[NSString alloc] initWithData:responseObject encoding:enc];
+            }
+            
+            NSDictionary *resultDic = [NSJSONSerialization JSONObjectWithData:[ReturnNor dataUsingEncoding:NSUTF8StringEncoding  ] options:NSJSONReadingMutableContainers error:&error];
+            
+            //                NSDictionary *resultDic = [NSJSONSerialization JSONObjectWithData:[Return dataUsingEncoding:NSUTF8StringEncoding  ] options:NSJSONReadingMutableContainers error:&error];
+            NSInteger resultCode = [[resultDic objectForKey:@"code"] integerValue];
+            if (resultCode == 0) {
+                [weakSelf setCacheWithContent:Return andParamter:parameters andUrl:URLString];
+            }
+            
+            
+        }
+    } failure:^(NSURLSessionDataTask *operation, NSError *error) {
+        failure(operation,error);
+    }];
+}
+
+- (NSURLSessionDataTask *)GET:(NSString *)URLString
+                   parameters:(id)parameters
+                      success:(void (^)(NSURLSessionDataTask *, id))success
+                      failure:(void (^)(NSURLSessionDataTask *, NSError *))failure{
+     NSString *log2 = [NSString stringWithFormat:@"%@",URLString];
+    NSLog(@"完整请求%@?%@",log2,parameters);
+    
+    return [[self getManager] GET:URLString parameters:[self addParams:parameters] success:^(NSURLSessionDataTask *operation, id responseObject) {
+        //返回处。 解密
+        NSString *Return = [[NSString alloc]initWithData:responseObject encoding:NSUTF8StringEncoding];
+        if (Return == nil || [Return isEqual:[NSNull null]]) {
+            //汉字转码
+            NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+            Return = [[NSString alloc] initWithData:responseObject encoding:enc];
+        }
+      
+        NSString *log =  [NSString stringWithFormat:@"返回:%@",Return];
+        NSLog(@"%@",log);
+        
+        success(operation,responseObject);
+    } failure:^(NSURLSessionDataTask *operation, NSError *error) {
+        failure(operation,error);
+    }];
+}
+
+- (NSURLSessionDataTask *)POST:(NSString *)URLString
+                      useCache:(BOOL)useCache
+                  cacheOutTime:(NSInteger)overTime
+                    parameters:(id)parameters
+                 SectionObject:(SCObject *)section
+                       success:(void (^)(NSURLSessionDataTask *operation, id responseObject, NSInteger returnType))success
+                       failure:(void (^)(NSURLSessionDataTask *operation, NSError *error))failure{
+    
+    setCache = YES;
+    if(useCache == NO){
+        [self POST:URLString parameters:parameters SectionObject:section success:^(NSURLSessionDataTask *operation, id responseObject) {
+            success(operation,responseObject,1);
+            
+        } failure:^(NSURLSessionDataTask *operation, NSError *error) {
+            failure(operation,error);
+        }];
+    }else
+    {
+        //开始读缓存
+    
+        NSDictionary * param = [[NSDictionary alloc]initWithDictionary:parameters];
+        
+        
+        NSString *resultContent = [self readCacheByUrl:URLString andParamter:param andOutTime:overTime];
+        if (resultContent) {
+            //            success(nil,)
+            NSData *data =[resultContent dataUsingEncoding:NSUTF8StringEncoding];
+            success(nil,data,0);
+        }else{
+            [self POST:URLString parameters:parameters SectionObject:section success:^(NSURLSessionDataTask *operation, id responseObject) {
+                success(operation,responseObject,1);
+            } failure:^(NSURLSessionDataTask *operation, NSError *error) {
+                failure(operation,error);
+            }];
+        }
+    }
+    return nil;
+}
+
+#pragma mark - 缓存处理
+- (NSString *)readCacheByUrl:(NSString *)url andParamter:(id)parameters andOutTime:(NSInteger)outTime{
+    __block NSString *resultContent;
+    SCDbHelper *dbhelper = [SCDbHelper instances];
+    [dbhelper.dbQueue inDatabase:^(FMDatabase *db) {
+        NSString *sUrl = [url stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        if (parameters) {
+            sUrl = [NSString stringWithFormat:@"%@|%@",url,parameters];
+        }
+        NSString *sql =[NSString stringWithFormat:@"select %@,%@ from %@ where %@=?",kColumn_SectionCache_content,kColumn_SectionCache_Time,kTableName_SectionCache,kColumn_SectionCache_Url];
+        FMResultSet *set = [db executeQuery:sql,sUrl];
+        if([set next]){
+            NSString *content = [set stringForColumn:kColumn_SectionCache_content];
+            NSString *time = [set stringForColumn:kColumn_SectionCache_Time];
+            //判断是否超期
+            NSDate *date = [TimeUtil String2Date:time];
+            NSUInteger inter= [TimeUtil DateToNow:date];
+            NSUInteger minute = inter/ 60;
+            if (minute > outTime && outTime != 0) { //超期
+                //删除该超期数据
+                NSString *deleSql = [NSString stringWithFormat:@"delete from %@ where %@=?",kTableName_SectionCache,kColumn_SectionCache_Url];
+                [db executeUpdate:deleSql,url];
+            }else{
+                //
+                //这里还需要针对不同的编码进行处理。
+                //
+                    resultContent = content;
+//                id tempObject = [self decryptResult:content withURl:url withDefaultValue:content netFlag:NO];
+                
+//                resultContent = [[NSString alloc]initWithData:tempObject encoding:NSUTF8StringEncoding];
+//                if (resultContent == nil || [resultContent isEqual:[NSNull null]]) {
+//                    //汉字转码
+//                    NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//                    resultContent = [[NSString alloc] initWithData:tempObject encoding:enc];
+//                }
+                
+            }
+        }
+        [set close];
+    }];
+    return resultContent;
+}
+
+- (void)setCacheWithContent:(NSString *)content andParamter:(id)parameters andUrl:(NSString *)url{
+    SCDbHelper *dbhelper = [SCDbHelper instances];
+    [dbhelper.dbQueue inDatabase:^(FMDatabase *db) {
+        NSString *sUrl = [url stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        if (parameters) {
+            sUrl = [NSString stringWithFormat:@"%@|%@",sUrl,parameters];
+        }
+        NSString *deleSql = [NSString stringWithFormat:@"delete from %@ where %@=?",kTableName_SectionCache,kColumn_SectionCache_Url];
+        [db executeUpdate:deleSql,sUrl];
+        
+        
+        NSString *insertSql = [NSString stringWithFormat:@"insert into %@(%@,%@,%@,%@) values(?,?,?,?)",
+                               kTableName_SectionCache,kColumn_SectionCache_SectionName,
+                               kColumn_SectionCache_Url,kColumn_SectionCache_content,kColumn_SectionCache_Time];
+        [db executeUpdate:insertSql,@"",sUrl,content,[TimeUtil NowTimeString]];
+    }];
+    
+}
+
+
+
+-(BOOL) isNeedEncrypt:(NSString*) url{
+//
+//    NSString * appHost = [URLFunction getYBTHost];
+//    NSString *apiHost = [URLFunction getJXLXHost];
+//
+//    //    ybtUploadFile
+//    NSArray* noEncryptArray = [[NSArray alloc] initWithObjects:[URLFunction ybtUploadFile],[URLFunction ybtGetDownloadResourceAddress],[URLFunction ybtGetToken],URL_YBT_PATCH,nil];
+//
+//    if ([url rangeOfString:appHost].location != NSNotFound||[url rangeOfString:apiHost].location != NSNotFound){
+//
+//        for (NSString* item in noEncryptArray) {
+//            //            if ([item isEqualToString:url]) {  //不能用等号，因为实际的接口是有参数的。
+//            if( [url rangeOfString:item].location!= NSNotFound){
+//                return NO;
+//            }
+//        }
+//        return YES;//nmapp下都加密 除了再上面集合里的。正常应该返回YES
+//    }
+//    return NO;
+    return NO;
+}
+-(id) encryptParams:(id)params{
+
+//    UInt64 msecond1 = [[NSDate date] timeIntervalSince1970]*1000;
+//    NSMutableDictionary *paramTemp = [NSMutableDictionary dictionaryWithDictionary:params ];
+//    //            NSMutableDictionary* paramNew ;
+//    id  paramNew;
+//    @try{
+//
+//        NSArray *keys;
+//        int i, count;
+//        id key, value;
+//        NSString * newValue;
+//        NSString* encrypt;
+//        keys = [paramTemp allKeys];
+//        count = [keys count];
+//        for (i = 0; i < count; i++)
+//        {
+//            key = [keys objectAtIndex: i];
+//            value = [paramTemp objectForKey: key];
+//            //            NSLog (@"Key: %@ for value: %@", key, value);
+//            encrypt = [NSString stringWithFormat:@"%@",value];
+//            newValue = [NSData AES256EncryptWithPlainText:encrypt];
+//            //            [paramTemp removeObjectForKey:key];
+//            //            [paramTemp removeObjectForKey:key];
+//            [paramTemp setValue:newValue forKey:key];
+//            //            [paramNew setObject:newValue forKey:key];
+//            //            NSLog(@"123");
+//            //            NSLog (@"Key: %@ for value: %@", key, newValue);
+//        }
+//        paramNew = paramTemp;
+//        //            parameters = paramNew;
+//    }
+//    @catch(NSException *exception) {
+//        NSLog(@"exception:%@", exception);
+//    }
+//    @finally {
+//
+//    }
+//    UInt64 msecond2 = [[NSDate date] timeIntervalSince1970]*1000;
+//    //    NSLog(@"加密发送，加密总时间：%llu毫秒", msecond2 - msecond1);
+//    return paramNew;
+    return nil;
+}
+
+
+-(id)decryptResult:(NSString*)result withURl:(NSString*)urlString withDefaultValue:(NSString*) deRet netFlag:(BOOL) netFlag {
+
+//    UInt64 msecond1 = [[NSDate date] timeIntervalSince1970]*1000;
+//    id responseObject; NSString *log ;
+//    NSString* retTemp = [NSData AES256DecryptWithCiphertext:result];
+//    UInt64 msecond2 = [[NSDate date] timeIntervalSince1970]*1000;
+//
+//    //    NSLog(@"解密总时间：%llu毫秒", msecond2 - msecond1);
+//    NSString *strTemp = [retTemp stringByReplacingOccurrencesOfString:@" " withString:@""];
+//
+//    if (retTemp==nil||[retTemp isEqual:[NSNull null]]||[retTemp  isEqualToString:@""]||[strTemp isEqualToString:@""]||[strTemp isEqual:[NSNull null]]) {
+//        retTemp = deRet ;
+//    }
+//    //    ([url rangeOfString:appHost].location != NSNotFound||[url rangeOfString:apiHost].location != NSNotFound)
+//    if ([urlString rangeOfString:[URLFunction getJXLXHost]].location != NSNotFound) {
+//        NSStringEncoding   enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//        responseObject = [retTemp dataUsingEncoding:enc ];
+//    }else{
+//        responseObject = [retTemp dataUsingEncoding:NSUTF8StringEncoding];
+//    }
+//    log = [NSString stringWithFormat:@"返回解密:%@",retTemp];
+//    //    DDLogInfo(@"%@",log);
+//    //增加如果是网络返回的结果，那么才输出日志。
+//    if (netFlag) {
+//#if DEBUG
+//        NSLog(@"%@",log);
+//#endif
+//    }
+//
+//    return responseObject;
+    return nil;
+
+}
+
+
+@end

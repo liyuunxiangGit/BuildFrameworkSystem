@@ -1,0 +1,24 @@
+//
+//  Aisino_iOS_SC_Prefix.pch
+//  Aisino_iOS_SupplyChain
+//
+//  Created by 荣学敏 on 2018/3/19.
+//
+
+#ifndef Aisino_iOS_SC_Prefix_pch
+#define Aisino_iOS_SC_Prefix_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+#import "CocoaLumberjack.h"
+#import "Macro.h"
+#import "Url_cons.h"
+
+#ifdef DEBUG
+static const int ddLogLevel = DDLogLevelVerbose;
+#else
+static const int ddLogLevel = DDLogLevelError;
+#endif
+
+
+#endif /* Aisino_iOS_SC_Prefix_pch */
