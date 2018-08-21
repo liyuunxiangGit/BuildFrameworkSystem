@@ -45,58 +45,59 @@
 
 -(void)allocInitTabbar{
     
-//    [[UINavigationBar appearance] setBarTintColor:[UIColor whiteColor]];
-//    [[UINavigationBar appearance] setTitleTextAttributes:@{NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue-Bold" size:16.0f],
-//                                                           NSForegroundColorAttributeName :[UIColor whiteColor]
-//                                                           }];
-//    [UINavigationBar appearance].translucent = NO;
-//    [[UINavigationBar appearance] setShadowImage:[UIImage new]];
-//    [[UINavigationBar appearance] setBackgroundImage:[[UIImage imageNamed:@"tav_top.png"] stretchableImageWithLeftCapWidth:40 topCapHeight:0] forBarMetrics:UIBarMetricsDefault];
-//    [self.tabBar setShadowImage:[UIImage new]];
-//    [self.tabBar setBackgroundImage:[UIImage new]];
-//    self.tabBar.backgroundColor = [UIColor whiteColor];
-//    [[UITabBarItem appearance] setTitleTextAttributes:@{NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue-Bold" size:10.0f],
-//                                                        NSForegroundColorAttributeName :UIColorFromRGB2(229,16,16)
-//                                                        } forState:UIControlStateSelected];
-//    
-//    [[UITabBarItem appearance] setTitleTextAttributes:@{NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue-Bold" size:10.0f],
-//                                                        NSForegroundColorAttributeName :kUIColorFromRGB(0xADB1B6)
-//                                                        } forState:UIControlStateNormal];
+    [[UINavigationBar appearance] setBarTintColor:[UIColor whiteColor]];
+    [[UINavigationBar appearance] setTitleTextAttributes:@{NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue-Bold" size:16.0f],
+                                                           NSForegroundColorAttributeName :[UIColor blackColor]
+                                                           }];
+    [UINavigationBar appearance].translucent = NO;
+    [[UINavigationBar appearance] setShadowImage:[UIImage new]];
+    [[UINavigationBar appearance] setBackgroundImage:[[UIImage imageNamed:@"tav_top.png"] stretchableImageWithLeftCapWidth:40 topCapHeight:0] forBarMetrics:UIBarMetricsDefault];
+    [self.tabBar setShadowImage:[UIImage new]];
+    [self.tabBar setBackgroundImage:[UIImage new]];
+    self.tabBar.backgroundColor = [UIColor whiteColor];
+    [[UITabBarItem appearance] setTitleTextAttributes:@{NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue-Bold" size:10.0f],
+                                                        NSForegroundColorAttributeName :UIColorFromRGB2(61, 103, 237)
+                                                        } forState:UIControlStateSelected];
+    
+    [[UITabBarItem appearance] setTitleTextAttributes:@{NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue-Bold" size:10.0f],
+                                                        NSForegroundColorAttributeName :kUIColorFromRGB(0xADB1B6)
+                                                        } forState:UIControlStateNormal];
     
     UIViewController *project;
     project = [[UIViewController alloc] init];
-    project.title = @"消息";
-//    project.tabBarItem.title=@"首页";
-//    project.tabBarItem.image = [[UIImage imageNamed:@"HomePage_Default"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-//        project.tabBarItem.selectedImage = [[UIImage imageNamed:@"HomePage_Selected"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-//    project.navigationItem.title = @"食药监智慧党建";
+    project.view.backgroundColor = [UIColor lightGrayColor];
+//    project.title = @"消息";
+    project.tabBarItem.title=@"消息";
+    project.tabBarItem.image = [[UIImage imageNamed:@"tab_message_normal"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        project.tabBarItem.selectedImage = [[UIImage imageNamed:@"tab_message_selected"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    project.navigationItem.title = @"消息";
     UINavigationController *projectnavigation = [[UINavigationController alloc] initWithRootViewController:project];
     
     
     UIViewController *c2=[[UIViewController alloc]init];
-    c2.title = @"工作台";
-//    c2.tabBarItem.title=@"党建活动";
-//        c2.tabBarItem.image = [[UIImage imageNamed:@"Event_Default"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-//        c2.tabBarItem.selectedImage = [[UIImage imageNamed:@"Event_Selected"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-//    c2.navigationItem.title = @"活动报名";
+//    c2.title = @"工作台";
+    c2.tabBarItem.title=@"工作台";
+        c2.tabBarItem.image = [[UIImage imageNamed:@"tab_workbench_normal"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        c2.tabBarItem.selectedImage = [[UIImage imageNamed:@"tab_workbench_selected"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    c2.navigationItem.title = @"工作台";
     UINavigationController *navigation2 = [[UINavigationController alloc] initWithRootViewController:c2];
     
     
     UIViewController *c3=[[UIViewController alloc]init];
-    c3.title = @"服务中心";
-//    c3.tabBarItem.title=@"在线教育";
-//    c3.navigationItem.title = @"学习计划";
-//        c3.tabBarItem.image = [[UIImage imageNamed:@"tab_online _education_normal"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-//        c3.tabBarItem.selectedImage = [[UIImage imageNamed:@"tab_online _education_selected"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+//    c3.title = @"服务中心";
+    c3.tabBarItem.title=@"服务中心";
+    c3.navigationItem.title = @"服务中心";
+        c3.tabBarItem.image = [[UIImage imageNamed:@"tab_service_normal"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        c3.tabBarItem.selectedImage = [[UIImage imageNamed:@"tab_service_selected"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     UINavigationController *navigation3 = [[UINavigationController alloc] initWithRootViewController:c3];
     
     
     UIViewController *c4=[[UIViewController alloc]init];
-    c4.title = @"我的";
-//    c4.tabBarItem.title=@"我的";
-//    c4.navigationItem.title = @"我的";
-//        c4.tabBarItem.image = [[UIImage imageNamed:@"tab_mine_normal"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-//        c4.tabBarItem.selectedImage = [[UIImage imageNamed:@"tab_mine_selected"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+//    c4.title = @"我的";
+    c4.tabBarItem.title=@"我的";
+    c4.navigationItem.title = @"我的";
+        c4.tabBarItem.image = [[UIImage imageNamed:@"tab_mine_normal"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        c4.tabBarItem.selectedImage = [[UIImage imageNamed:@"tab_mine_selected"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     UINavigationController *navigation4 = [[UINavigationController alloc] initWithRootViewController:c4];
     
     

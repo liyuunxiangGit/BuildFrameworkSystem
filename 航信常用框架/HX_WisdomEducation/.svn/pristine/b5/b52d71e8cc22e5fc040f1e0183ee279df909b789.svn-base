@@ -1,0 +1,50 @@
+//
+//  HX_WisdomEducation.pch
+//  HX-WisdomEducation
+//
+//  Created by 荣学敏 on 2018/8/13.
+//  Copyright © 2018年 HX. All rights reserved.
+//
+
+#ifndef HX_WisdomEducation_pch
+#define HX_WisdomEducation_pch
+
+#import "Macro.h"
+#import "Url_cons.h"
+#import <Masonry.h>
+#import <UIImageView+WebCache.h>
+#import "UIImage+GIF.h"
+#import "UIViewExt.h"
+#import "GlobalFunc.h"
+
+#import "UIViewController+DismissKeyboard.h"
+#import "UIViewController+CreateModel.h"
+#import "UIView+Nib.h"
+#import "UIButton+CustemImagePosition.h"
+#import "UIView+CornerRadiu.h"
+#import "UIView+ViewController.h"
+#import "NSObject+Reflection.h"
+#import "CommonShare.h"         //添加公用枚举
+#import "NSObject+HXSignEncrypt.h"
+#import "MBProgressHUD+Add.h"
+#import "UIAlertController+Custom.h"
+//#import "DictionaryToJsonStr.h"
+#import "AccountModel.h"
+#import "UILabel+Adaptive.h"
+#import "UIView+LFExtension.h"
+#import "StringUtil.h"
+#import "HXNetWorkManager.h"
+//#import "NSObject+Parse.h"
+//#import "UIView+LFExtension.h"
+
+#import "HXBackController.h"    //控制期基类
+#import "HXTablePlainController.h"
+#import "HXTableGroupController.h"
+#import "MJRefresh.h"
+#import "HXNetWorkManager.h"
+//#import "MJhuojianHeader.h"
+#import "UIControl+UIControl_buttonCon.h"
+#import <MJExtension.h>
+
+
+#endif /* HX_WisdomEducation_pch */
