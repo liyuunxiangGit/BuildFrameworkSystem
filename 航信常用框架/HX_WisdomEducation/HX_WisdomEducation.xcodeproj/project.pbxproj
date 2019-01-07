@@ -173,7 +173,6 @@
 		762ADB1E2121853C003171E4 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 762AD9042121853C003171E4 /* ViewController.m */; };
 		762ADB262121868D003171E4 /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 762ADB242121868D003171E4 /* LoginViewController.m */; };
 		762ADB272121868D003171E4 /* LoginViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 762ADB252121868D003171E4 /* LoginViewController.xib */; };
-		762ADB2921218760003171E4 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 762ADB2821218760003171E4 /* Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1461,7 +1460,6 @@
 				762ADB272121868D003171E4 /* LoginViewController.xib in Resources */,
 				762ADAC82121853C003171E4 /* LICENSE in Resources */,
 				762AD586212184A3003171E4 /* Assets.xcassets in Resources */,
-				762ADB2921218760003171E4 /* Info.plist in Resources */,
 				762AD92B2121853C003171E4 /* EmptyDataView.xib in Resources */,
 				762ADB192121853C003171E4 /* README.txt in Resources */,
 				762AD584212184A3003171E4 /* Main.storyboard in Resources */,
